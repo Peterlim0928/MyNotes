@@ -1,7 +1,12 @@
+import { ThemeProvider } from "./context/ThemeContext";
 import WorkspacePage from "./pages/WorkspacePage";
 
 function App() {
-  return <WorkspacePage />;
+  return (
+    <ThemeProvider>
+      <WorkspacePage />
+    </ThemeProvider>
+  );
 }
 
 export default App;

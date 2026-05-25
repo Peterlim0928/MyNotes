@@ -45,12 +45,12 @@ export default function FileTree({
     <div className="h-full flex flex-col">
       {/* Header */}
       <div
-        className={`flex items-center border-b border-gray-100 h-12 flex-shrink-0 ${collapsed ? "justify-center px-0" : "px-4 gap-2"}`}
+        className={`flex items-center border-b border-gray-100 dark:border-gray-600 h-12 flex-shrink-0 ${collapsed ? "justify-center px-0" : "px-4 gap-2"}`}
       >
         {!collapsed && (
           <>
             <FolderOpen size={15} className="text-yellow-500 flex-shrink-0" />
-            <span className="text-sm font-semibold text-gray-700 flex-1 truncate">
+            <span className="text-sm font-semibold text-gray-700 dark:text-gray-300 flex-1 truncate">
               {MOCK_TREE.name}
             </span>
           </>

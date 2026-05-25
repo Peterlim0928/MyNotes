@@ -26,7 +26,7 @@ export default function FileTreeItem({
         <button
           onClick={() => !collapsed && setOpen(!open)}
           title={collapsed ? item.name : undefined}
-          className={`flex items-center gap-2 w-full py-3 text-sm text-gray-600 hover:bg-gray-100 rounded-md transition-colors ${!collapsed && "pr-3"}`}
+          className={`flex items-center gap-2 w-full py-3 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors ${!collapsed && "pr-3"}`}
           style={{ paddingLeft: collapsed ? "0px" : `${depth * 16 + 16}px` }}
         >
           {/* Collapse everything to centered icon when sidebar is collapsed */}
@@ -76,8 +76,8 @@ export default function FileTreeItem({
       title={collapsed ? item.name : undefined}
       className={`flex items-center gap-2 w-full py-3 text-sm rounded-md transition-colors ${!collapsed && "pr-3"} ${
         selectedId === item.id
-          ? "bg-blue-50 text-blue-700 font-medium"
-          : "text-gray-600 hover:bg-gray-100"
+          ? "bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-medium"
+          : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
       }`}
       style={{ paddingLeft: collapsed ? "0px" : `${depth * 16 + 16}px` }}
     >
@@ -86,7 +86,9 @@ export default function FileTreeItem({
           <FileText
             size={16}
             className={
-              selectedId === item.id ? "text-blue-500" : "text-gray-400"
+              selectedId === item.id
+                ? "text-blue-500"
+                : "text-gray-400 dark:text-gray-500"
             }
           />
         </div>
