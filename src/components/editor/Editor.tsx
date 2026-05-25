@@ -7,6 +7,8 @@ import {
 import StarterKit from "@tiptap/starter-kit";
 import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
+import { TextStyle } from "@tiptap/extension-text-style";
+import { Color } from "@tiptap/extension-color";
 import Toolbar from "./Toolbar";
 import "./Editor.css";
 import { type TOCItem, useTOC } from "../../hooks/useTOC";
@@ -30,6 +32,8 @@ export default function Editor({
     extensions: [
       StarterKit,
       Underline,
+      TextStyle,
+      Color,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
     ],
     editorProps: {

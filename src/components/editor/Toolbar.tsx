@@ -26,6 +26,18 @@ const HEADINGS = [
   { label: "Heading 6", value: 6 },
 ];
 
+const FONT_COLORS = [
+  { label: "Default", value: "" },
+  { label: "Gray", value: "#6b7280" },
+  { label: "Red", value: "#ef4444" },
+  { label: "Orange", value: "#f97316" },
+  { label: "Yellow", value: "#eab308" },
+  { label: "Green", value: "#22c55e" },
+  { label: "Blue", value: "#3b82f6" },
+  { label: "Purple", value: "#a855f7" },
+  { label: "Pink", value: "#ec4899" },
+];
+
 function Divider() {
   return <div className="w-px h-5 bg-gray-200 mx-1" />;
 }
@@ -131,6 +143,61 @@ export default function Toolbar({ editor }: Props) {
       >
         <Underline size={15} />
       </ToolBtn>
+
+      <Dropdown
+        trigger={
+          <button
+            className="flex items-center gap-0.5 p-1.5 rounded text-gray-600 hover:bg-gray-100 transition-colors"
+            title="Font color"
+          >
+            <div className="flex flex-col items-center leading-none">
+              <span
+                className="text-sm"
+                style={{
+                  marginBottom: -2,
+                }}
+              >
+                A
+              </span>
+              <div
+                className="h-0.5 w-3.5 rounded-full"
+                style={{
+                  backgroundColor:
+                    editor.getAttributes("textStyle").color || "#111827",
+                }}
+              />
+            </div>
+            <ChevronDown size={11} className="text-gray-400" />
+          </button>
+        }
+        items={FONT_COLORS.map((c) => ({
+          label: c.label,
+          value: c.value,
+          className: "flex items-center gap-2",
+        }))}
+        activeValue={editor.getAttributes("textStyle").color ?? ""}
+        onSelect={(value) => {
+          if (value === "") {
+            editor.chain().focus().unsetColor().run();
+          } else {
+            editor
+              .chain()
+              .focus()
+              .setColor(value as string)
+              .run();
+          }
+        }}
+        contentClassName="min-w-36"
+        renderItem={(item) => (
+          <div className="flex items-center gap-2">
+            <div
+              className="w-3 h-3 rounded-full border border-gray-200 flex-shrink-0"
+              style={{ backgroundColor: item.value || "#111827" }}
+            />
+            {item.label}
+          </div>
+        )}
+      />
 
       <Divider />
 

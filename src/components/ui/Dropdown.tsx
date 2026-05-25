@@ -1,27 +1,30 @@
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
+import type { Key } from "react";
 
-interface DropdownItem {
+interface DropdownItem<T> {
   label: string;
-  value: string | number;
+  value: T;
   style?: React.CSSProperties;
   className?: string;
 }
 
-interface Props {
+interface Props<T> {
   trigger: React.ReactNode;
-  items: DropdownItem[];
-  activeValue?: string | number;
-  onSelect: (value: string | number) => void;
+  items: DropdownItem<T>[];
+  activeValue?: T;
+  onSelect: (value: T) => void;
   contentClassName?: string;
+  renderItem?: (item: DropdownItem<T>) => React.ReactNode;
 }
 
-export default function Dropdown({
+export default function Dropdown<T extends Key | null | undefined>({
   trigger,
   items,
   activeValue,
   onSelect,
   contentClassName,
-}: Props) {
+  renderItem,
+}: Props<T>) {
   return (
     <DropdownMenu.Root>
       <DropdownMenu.Trigger asChild>{trigger}</DropdownMenu.Trigger>
@@ -42,7 +45,7 @@ export default function Dropdown({
               } ${item.className ?? ""}`}
               style={item.style}
             >
-              {item.label}
+              {renderItem ? renderItem(item) : item.label}
             </DropdownMenu.Item>
           ))}
         </DropdownMenu.Content>
