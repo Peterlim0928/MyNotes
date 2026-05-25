@@ -142,9 +142,6 @@ export default function WorkspacePage() {
 
                 {/* Panel */}
                 <div className="fixed bottom-20 right-6 z-50 w-64 max-h-72 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden flex flex-col">
-                  <div className="px-3 py-2.5 text-xs font-semibold text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-gray-700">
-                    On this page
-                  </div>
                   <div className="overflow-y-auto flex-1">
                     <TableOfContents
                       items={tocItems}

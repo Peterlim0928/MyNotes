@@ -9,11 +9,18 @@ import {
   AlignCenter,
   AlignRight,
   ChevronDown,
+  ImageIcon,
+  Link,
+  Upload,
 } from "lucide-react";
 import Dropdown from "../ui/Dropdown";
+import { useRef, useState } from "react";
 
 interface Props {
   editor: Editor | null;
+  onImageUpload: (file: File) => void;
+  onImageURL: (url: string) => void;
+  isImageSelected: boolean;
 }
 
 const HEADINGS = [
@@ -38,6 +45,8 @@ const FONT_COLORS = [
   { label: "Pink", value: "#ec4899" },
 ];
 
+const SIZES = ["Small", "Medium", "Large", "Full"];
+
 function Divider() {
   return <div className="w-px h-5 bg-gray-200 mx-1" />;
 }
@@ -46,7 +55,35 @@ function Spacer() {
   return <div className="flex-1" />;
 }
 
-export default function Toolbar({ editor }: Props) {
+export default function Toolbar({
+  editor,
+  onImageUpload,
+  onImageURL,
+  isImageSelected,
+}: Props) {
+  const [imageExpanded, setImageExpanded] = useState(false);
+  const [urlInput, setUrlInput] = useState(false);
+  const [urlValue, setUrlValue] = useState("");
+  const fileRef = useRef<HTMLInputElement>(null);
+
+  const handleURLSubmit = () => {
+    if (urlValue.trim()) {
+      onImageURL(urlValue.trim());
+      setUrlValue("");
+      setUrlInput(false);
+      setImageExpanded(false);
+    }
+  };
+
+  const handleFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      onImageUpload(file);
+      setImageExpanded(false);
+    }
+    e.target.value = "";
+  };
+
   if (!editor) return null;
 
   const activeHeading =
@@ -84,7 +121,7 @@ export default function Toolbar({ editor }: Props) {
   );
 
   return (
-    <div className="border-b border-gray-200 dark:border-gray-600 px-3 py-1.5 flex items-center gap-1 bg-gray-50 dark:bg-gray-800">
+    <div className="border-b border-gray-200 dark:border-gray-600 px-3 py-1.5 flex items-center gap-1 bg-gray-50 dark:bg-gray-800 overflow-x-auto">
       <Dropdown
         trigger={
           <button className="flex items-center gap-1 px-2 py-1.5 text-sm text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600 rounded transition-colors min-w-32">
@@ -242,6 +279,127 @@ export default function Toolbar({ editor }: Props) {
       >
         <AlignRight size={15} />
       </ToolBtn>
+
+      <Divider />
+
+      {/* Image button */}
+      <ToolBtn
+        onClick={() => {
+          setImageExpanded((e) => !e);
+          setUrlInput(false);
+          setUrlValue("");
+        }}
+        active={imageExpanded}
+        title="Image"
+      >
+        <ImageIcon size={15} />
+      </ToolBtn>
+
+      <div
+        className={`flex items-center gap-1 overflow-hidden transition-all duration-200 ease-in-out ${
+          imageExpanded ? "max-w-32 opacity-100" : "max-w-0 opacity-0"
+        }`}
+      >
+        {urlInput ? (
+          <div className="flex items-center gap-1">
+            <input
+              autoFocus
+              type="url"
+              placeholder="Paste image URL..."
+              value={urlValue}
+              onChange={(e) => setUrlValue(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") handleURLSubmit();
+                if (e.key === "Escape") {
+                  setUrlInput(false);
+                  setUrlValue("");
+                }
+              }}
+              className="border border-gray-200 dark:border-gray-700 rounded-md px-2 py-1 text-xs outline-none focus:border-blue-400 dark:bg-gray-800 dark:text-gray-200 w-48"
+            />
+            <button
+              onMouseDown={(e) => {
+                e.preventDefault();
+                handleURLSubmit();
+              }}
+              className="text-xs px-2 py-1 bg-blue-500 hover:bg-blue-600 text-white rounded-md transition-colors"
+            >
+              Insert
+            </button>
+            <button
+              onMouseDown={(e) => {
+                e.preventDefault();
+                setUrlInput(false);
+                setUrlValue("");
+              }}
+              className="text-xs px-2 py-1 text-gray-500 hover:bg-gray-100 rounded-md transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <>
+            <ToolBtn onClick={() => setUrlInput(true)} title="Insert from URL">
+              <Link size={15} />
+            </ToolBtn>
+            <ToolBtn
+              onClick={() => fileRef.current?.click()}
+              title="Upload from device"
+            >
+              <Upload size={15} />
+            </ToolBtn>
+          </>
+        )}
+      </div>
+
+      <input
+        ref={fileRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={handleFile}
+      />
+
+      {isImageSelected &&
+        (() => {
+          const currentSize = editor.getAttributes("image").size ?? "medium";
+          const currentIndex = SIZES.findIndex(
+            (s) => s.toLowerCase() === currentSize,
+          );
+
+          return (
+            <div className="relative flex items-center bg-green-100 rounded-md mx-1">
+              {/* Sliding indicator */}
+              <div
+                className="absolute top-0 bottom-0 rounded transition-all duration-200 ease-in-out bg-green-600"
+                style={{
+                  width: `calc(100% / ${SIZES.length})`,
+                  left: `calc(${currentIndex} * 100% / ${SIZES.length})`,
+                }}
+              />
+              {SIZES.map((s) => (
+                <button
+                  key={s}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    editor
+                      .chain()
+                      .focus()
+                      .updateAttributes("image", { size: s.toLowerCase() })
+                      .run();
+                  }}
+                  className={`relative z-10 px-2 py-1 w-15 text-xs rounded transition-colors duration-200 ${
+                    currentSize === s.toLowerCase()
+                      ? "text-white font-medium"
+                      : "text-green-700 hover:text-green-900"
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          );
+        })()}
 
       <Spacer />
     </div>

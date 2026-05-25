@@ -5,13 +5,13 @@ import {
   type Editor as EditorType,
 } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
-import Underline from "@tiptap/extension-underline";
 import TextAlign from "@tiptap/extension-text-align";
 import { TextStyle } from "@tiptap/extension-text-style";
 import { Color } from "@tiptap/extension-color";
 import Toolbar from "./Toolbar";
 import "./Editor.css";
 import { type TOCItem, useTOC } from "../../hooks/useTOC";
+import { CustomImage } from "./extensions/CustomImage";
 
 interface Props {
   content: string;
@@ -31,9 +31,9 @@ export default function Editor({
   const editor = useEditor({
     extensions: [
       StarterKit,
-      Underline,
       TextStyle,
       Color,
+      CustomImage,
       TextAlign.configure({ types: ["heading", "paragraph"] }),
     ],
     editorProps: {
@@ -52,6 +52,30 @@ export default function Editor({
 
   const tocItems = useTOC(editor);
 
+  const handleImageUpload = (file: File) => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const src = e.target?.result as string;
+      editor?.chain().focus().setImage({ src }).run();
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleImageURL = (url: string) => {
+    editor
+      ?.chain()
+      .focus()
+      .setImage({ src: url } as any)
+      .run();
+  };
+
+  const isImageSelected = (() => {
+    if (!editor) return false;
+    const { selection } = editor.state;
+    const node = (selection as any).node;
+    return node?.type.name === "image";
+  })();
+
   // Bubble TOC changes up to WorkspacePage
   useEffect(() => {
     onTOCChange(tocItems);
@@ -63,7 +87,12 @@ export default function Editor({
 
   return (
     <div className="flex flex-col h-full">
-      <Toolbar editor={editor} />
+      <Toolbar
+        editor={editor}
+        onImageUpload={handleImageUpload}
+        onImageURL={handleImageURL}
+        isImageSelected={isImageSelected}
+      />
       <div className="flex-1 overflow-y-auto">
         <EditorContent
           editor={editor}
