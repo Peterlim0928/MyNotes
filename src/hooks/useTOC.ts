@@ -15,24 +15,18 @@ export function useTOC(editor: Editor | null): TOCItem[] {
 
     const update = () => {
       const headings: TOCItem[] = [];
-      editor.state.doc.forEach((node, _, index) => {
+      let counter = 0;
+      editor.state.doc.forEach((node) => {
         if (node.type.name === "heading") {
-          const id = `heading-${index}`;
           headings.push({
-            id,
+            id: `heading-${counter}`,
             text: node.textContent,
             level: node.attrs.level,
           });
+          counter++;
         }
       });
       setItems(headings);
-
-      // Stamp IDs onto the actual DOM heading elements so we can scroll to them
-      const editorEl = editor.view.dom;
-      const domHeadings = editorEl.querySelectorAll("h1,h2,h3,h4,h5,h6");
-      domHeadings.forEach((el, i) => {
-        el.setAttribute("id", `heading-${i}`);
-      });
     };
 
     update();
@@ -57,12 +51,14 @@ export function useActiveTOC(
     const update = () => {
       const { $anchor } = editor.state.selection;
       let activeIndex: number | null = null;
+      let counter = 0;
 
-      editor.state.doc.forEach((node, offset, index) => {
+      editor.state.doc.forEach((node, offset) => {
         if (node.type.name === "heading") {
           if ($anchor.pos >= offset) {
-            activeIndex = index;
+            activeIndex = counter;
           }
+          counter++;
         }
       });
 

@@ -1,12 +1,14 @@
+import { useEffect, useState } from "react";
 import {
   useEditor,
   EditorContent,
   type Editor as EditorType,
 } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
+import Underline from "@tiptap/extension-underline";
+import TextAlign from "@tiptap/extension-text-align";
 import Toolbar from "./Toolbar";
 import "./Editor.css";
-import { useEffect, useState } from "react";
 import { type TOCItem, useTOC } from "../../hooks/useTOC";
 
 interface Props {
@@ -25,7 +27,16 @@ export default function Editor({
   const [, rerender] = useState(0);
 
   const editor = useEditor({
-    extensions: [StarterKit],
+    extensions: [
+      StarterKit,
+      Underline,
+      TextAlign.configure({ types: ["heading", "paragraph"] }),
+    ],
+    editorProps: {
+      attributes: {
+        spellcheck: "false",
+      },
+    },
     content,
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());

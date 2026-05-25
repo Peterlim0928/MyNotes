@@ -30,6 +30,7 @@ export default function TableOfContents({
                   : "border-transparent text-gray-500 hover:text-gray-900 hover:border-gray-300 dark:hover:border-gray-600 dark:text-gray-400 dark:hover:text-gray-300"
               }`}
               style={{ paddingLeft: `${item.level * 12}px` }}
+              title={item.text}
             >
               {item.text}
             </button>

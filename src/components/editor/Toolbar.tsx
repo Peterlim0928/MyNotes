@@ -1,5 +1,15 @@
 import { Editor } from "@tiptap/react";
-import { ChevronDown } from "lucide-react";
+import {
+  Bold,
+  Italic,
+  Underline,
+  List,
+  ListOrdered,
+  AlignLeft,
+  AlignCenter,
+  AlignRight,
+  ChevronDown,
+} from "lucide-react";
 import Dropdown from "../ui/Dropdown";
 
 interface Props {
@@ -16,6 +26,14 @@ const HEADINGS = [
   { label: "Heading 6", value: 6 },
 ];
 
+function Divider() {
+  return <div className="w-px h-5 bg-gray-200 mx-1" />;
+}
+
+function Spacer() {
+  return <div className="flex-1" />;
+}
+
 export default function Toolbar({ editor }: Props) {
   if (!editor) return null;
 
@@ -25,6 +43,33 @@ export default function Toolbar({ editor }: Props) {
         ? editor.isActive("paragraph")
         : editor.isActive("heading", { level: h.value }),
     ) ?? HEADINGS[0];
+
+  const ToolBtn = ({
+    onClick,
+    active = false,
+    title,
+    children,
+  }: {
+    onClick: () => void;
+    active?: boolean;
+    title: string;
+    children: React.ReactNode;
+  }) => (
+    <button
+      onMouseDown={(e) => {
+        e.preventDefault();
+        onClick();
+      }}
+      title={title}
+      className={`p-1.5 rounded transition-colors ${
+        active
+          ? "bg-blue-100 text-blue-700 dark:bg-blue-600 dark:text-blue-300"
+          : "text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-600"
+      }`}
+    >
+      {children}
+    </button>
+  );
 
   return (
     <div className="border-b border-gray-200 dark:border-gray-600 px-3 py-1.5 flex items-center gap-1 bg-gray-50 dark:bg-gray-800">
@@ -60,6 +105,78 @@ export default function Toolbar({ editor }: Props) {
         }}
         contentClassName="min-w-36"
       />
+
+      <Divider />
+
+      <ToolBtn
+        onClick={() => editor.chain().focus().toggleBold().run()}
+        active={editor.isActive("bold")}
+        title="Bold"
+      >
+        <Bold size={15} />
+      </ToolBtn>
+
+      <ToolBtn
+        onClick={() => editor.chain().focus().toggleItalic().run()}
+        active={editor.isActive("italic")}
+        title="Italic"
+      >
+        <Italic size={15} />
+      </ToolBtn>
+
+      <ToolBtn
+        onClick={() => editor.chain().focus().toggleUnderline().run()}
+        active={editor.isActive("underline")}
+        title="Underline"
+      >
+        <Underline size={15} />
+      </ToolBtn>
+
+      <Divider />
+
+      <ToolBtn
+        onClick={() => editor.chain().focus().toggleBulletList().run()}
+        active={editor.isActive("bulletList")}
+        title="Bullet list"
+      >
+        <List size={15} />
+      </ToolBtn>
+
+      <ToolBtn
+        onClick={() => editor.chain().focus().toggleOrderedList().run()}
+        active={editor.isActive("orderedList")}
+        title="Numbered list"
+      >
+        <ListOrdered size={15} />
+      </ToolBtn>
+
+      <Divider />
+
+      <ToolBtn
+        onClick={() => editor.chain().focus().setTextAlign("left").run()}
+        active={editor.isActive({ textAlign: "left" })}
+        title="Align left"
+      >
+        <AlignLeft size={15} />
+      </ToolBtn>
+
+      <ToolBtn
+        onClick={() => editor.chain().focus().setTextAlign("center").run()}
+        active={editor.isActive({ textAlign: "center" })}
+        title="Align center"
+      >
+        <AlignCenter size={15} />
+      </ToolBtn>
+
+      <ToolBtn
+        onClick={() => editor.chain().focus().setTextAlign("right").run()}
+        active={editor.isActive({ textAlign: "right" })}
+        title="Align right"
+      >
+        <AlignRight size={15} />
+      </ToolBtn>
+
+      <Spacer />
     </div>
   );
 }
