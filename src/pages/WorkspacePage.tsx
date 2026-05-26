@@ -208,7 +208,7 @@ export default function WorkspacePage() {
           {selectedFile ? (
             <Editor
               content={content}
-              onChange={handleSave}
+              onChange={setContent}
               onTOCChange={setTocItems}
               onEditorReady={setEditor}
             />

@@ -94,12 +94,12 @@ export default function FileTreeItem({
           }}
           onMouseEnter={() => setHovered(true)}
           onMouseLeave={() => setHovered(false)}
-          className={`flex items-center gap-2 w-[calc(100%-16px)] mx-2 py-2 pr-2 text-sm rounded-md transition-colors ${
+          className={`flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors ${
             focusedId === item.id
               ? "ring-1 ring-blue-400 dark:ring-blue-500"
               : ""
           } text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700`}
-          style={{ paddingLeft: collapsed ? "0px" : `${depth * 16 + 16}px` }}
+          style={{ paddingLeft: collapsed ? "" : `${depth * 16 + 16}px` }}
         >
           {collapsed ? (
             <div className="w-full flex justify-center">
@@ -175,14 +175,14 @@ export default function FileTreeItem({
         }
       }}
       title={collapsed ? displayName : undefined}
-      className={`flex items-center gap-2 w-[calc(100%-16px)] mx-2 py-2 pr-2 text-sm rounded-md transition-colors ${
+      className={`flex items-center gap-2 px-3 py-2 text-sm rounded-md transition-colors ${
         focusedId === item.id ? "ring-1 ring-blue-400 dark:ring-blue-500" : ""
       } ${
         selectedId === item.id
           ? "bg-blue-50 dark:bg-blue-900 text-blue-700 dark:text-blue-300 font-medium"
           : "text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
       }`}
-      style={{ paddingLeft: collapsed ? "0px" : `${depth * 16 + 16}px` }}
+      style={{ paddingLeft: collapsed ? "" : `${depth * 16 + 16}px` }}
     >
       {collapsed ? (
         <div className="w-full flex justify-center">
