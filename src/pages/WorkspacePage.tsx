@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import FileTree from "../components/sidebar/FileTree";
 import TableOfContents from "../components/sidebar/TableOfContents";
-import type { NoteFile } from "../types";
+import type { NoteFile, NoteFolder } from "../types";
 import Navbar from "../components/ui/Navbar";
 import Editor from "../components/editor/Editor";
 import { useActiveTOC, type TOCItem } from "../hooks/useTOC";
@@ -9,6 +9,8 @@ import type { Editor as EditorType } from "@tiptap/react";
 import { useResize } from "../hooks/useResize";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { BookOpen, X } from "lucide-react";
+import { loadFromLocal } from "../storage/LocalStorage";
+import { addFileToTree, addFolderToTree } from "../utils/treeUtils";
 
 export default function WorkspacePage() {
   const isMobile = useIsMobile();
@@ -18,6 +20,11 @@ export default function WorkspacePage() {
   const [editor, setEditor] = useState<EditorType | null>(null);
   const [tocItems, setTocItems] = useState<TOCItem[]>([]);
   const [tocOpen, setTocOpen] = useState(false);
+  const [hasFolder, setHasFolder] = useState(false);
+  const [folderTree, setFolderTree] = useState<NoteFolder | null>(null);
+  const [rootHandle, setRootHandle] =
+    useState<FileSystemDirectoryHandle | null>(null);
+  const [focusId, setFocusId] = useState<string | null>(null);
 
   const { width: tocWidth, onMouseDown: onTOCResize } = useResize(
     208,
@@ -46,6 +53,71 @@ export default function WorkspacePage() {
     });
   };
 
+  const handleCreateNew = () => {
+    const emptyTree: NoteFolder = {
+      id: "root",
+      name: "My Notes",
+      parentId: null,
+      children: [],
+    };
+    setFolderTree(emptyTree);
+    setHasFolder(true);
+  };
+
+  const handleLoadFolder = async (type: "local" | "google" | "onedrive") => {
+    if (type === "local") {
+      const result = await loadFromLocal();
+      if (result) {
+        setFolderTree(result.tree);
+        setRootHandle(result.rootHandle);
+        setHasFolder(true);
+      }
+    }
+  };
+
+  const handleSelectFile = (file: NoteFile) => {
+    setContent(file.content);
+    setSelectedFile(file);
+  };
+
+  const getTargetParentId = () => {
+    if (!folderTree) return null;
+    if (!focusId) return folderTree.id;
+
+    // If focused item is a folder, add inside it
+    // If focused item is a file, add to its parent
+    const findItem = (node: NoteFolder): NoteFile | NoteFolder | null => {
+      for (const child of node.children) {
+        if (child.id === focusId) return child;
+        if ("children" in child) {
+          const found = findItem(child);
+          if (found) return found;
+        }
+      }
+      return null;
+    };
+
+    const focused = findItem(folderTree);
+    if (!focused) return folderTree.id;
+    return "children" in focused
+      ? focused.id
+      : (focused.parentId ?? folderTree.id);
+  };
+
+  const handleAddFile = (name: string) => {
+    if (!folderTree) return;
+    const parentId = getTargetParentId();
+    if (!parentId) return;
+    setFolderTree(addFileToTree(folderTree, parentId, name));
+  };
+
+  const handleAddFolder = (name: string) => {
+    if (!folderTree) return;
+    const parentId = getTargetParentId();
+    if (!parentId) return;
+    setFolderTree(addFolderToTree(folderTree, parentId, name));
+  };
+
   const handleSave = (html: string) => {
     // Phase 3 will save this to Drive/OneDrive/local
     console.log("Auto-saving...", html.slice(0, 80));
@@ -64,6 +136,10 @@ export default function WorkspacePage() {
     }
   }, [content, editor]);
 
+  useEffect(() => {
+    console.log("Folder tree updated:", folderTree);
+  }, [folderTree]);
+
   return (
     <div className="flex flex-col h-screen bg-white dark:bg-gray-900 dark:text-gray-300 overflow-hidden">
       <Navbar />
@@ -71,14 +147,22 @@ export default function WorkspacePage() {
       <div className="flex flex-1 overflow-hidden">
         {/* Left Sidebar */}
         <aside
-          className="relative border-r border-gray-200 dark:border-gray-600 flex-shrink-0 overflow-hidden"
-          style={{ width: sidebarOpen ? "280px" : "48px" }}
+          className="relative border-r border-gray-200 dark:border-gray-600 flex-shrink-0 overflow-hidden transition-width duration-200"
+          style={{ width: sidebarOpen ? "280px" : "56px" }}
         >
           <FileTree
             selectedId={selectedFile?.id ?? null}
-            onSelect={setSelectedFile}
+            onSelect={handleSelectFile}
             collapsed={!sidebarOpen}
             onToggle={() => setSidebarOpen(!sidebarOpen)}
+            hasFolder={hasFolder}
+            folderTree={folderTree}
+            onCreateNew={handleCreateNew}
+            onLoadFolder={handleLoadFolder}
+            onAddFile={handleAddFile}
+            onAddFolder={handleAddFolder}
+            focusId={focusId}
+            onFocus={setFocusId}
           />
         </aside>
 

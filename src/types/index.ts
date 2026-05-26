@@ -3,8 +3,6 @@ export interface NoteFile {
   name: string;
   parentId: string | null;
   content: string;
-  createdAt?: string;
-  updatedAt?: string;
 }
 
 export interface NoteFolder {
@@ -14,14 +12,10 @@ export interface NoteFolder {
   children: (NoteFile | NoteFolder)[];
 }
 
-export type StorageType = "google" | "onedrive" | "local";
+export type StorageType = "local" | "google" | "onedrive";
 
-export interface StorageProvider {
-  readFolder: (folderId: string) => Promise<NoteFolder>;
-  readFile: (fileId: string) => Promise<string>;
-  writeFile: (fileId: string, content: string) => Promise<void>;
-  createFile: (name: string, parentId: string) => Promise<NoteFile>;
-  createFolder: (name: string, parentId: string) => Promise<NoteFolder>;
-  deleteFile: (fileId: string) => Promise<void>;
-  renameFile: (fileId: string, name: string) => Promise<void>;
-}
+export type WorkspaceSource =
+  | { type: "new" }
+  | { type: "local"; path: string }
+  | { type: "google"; folderId: string }
+  | { type: "onedrive"; folderId: string };
