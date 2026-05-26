@@ -1,7 +1,13 @@
-import { Search, Share2, Sun, Moon } from "lucide-react";
+import { Search, Share2, Sun, Moon, Loader2, Save } from "lucide-react";
 import { useTheme } from "../../context/ThemeContext";
 
-export default function Navbar() {
+interface Props {
+  onSave: () => void;
+  saving: boolean;
+  canSave: boolean;
+}
+
+export default function Navbar({ onSave, saving, canSave }: Props) {
   const { theme, toggleTheme } = useTheme();
 
   return (
@@ -31,6 +37,25 @@ export default function Navbar() {
 
       {/* Right actions */}
       <div className="flex items-center gap-5">
+        {/* Save */}
+        <button
+          onClick={onSave}
+          disabled={!canSave || saving}
+          className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-gray-100 hover:bg-gray-200 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-md transition-colors disabled:opacity-40"
+        >
+          {saving ? (
+            <>
+              <Loader2 size={14} className="animate-spin" />
+              Saving...
+            </>
+          ) : (
+            <>
+              <Save size={14} />
+              Save
+            </>
+          )}
+        </button>
+
         {/* Dark mode toggle */}
         <button
           onClick={toggleTheme}

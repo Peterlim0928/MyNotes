@@ -9,8 +9,13 @@ import type { Editor as EditorType } from "@tiptap/react";
 import { useResize } from "../hooks/useResize";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { BookOpen, X } from "lucide-react";
-import { loadFromLocal } from "../storage/LocalStorage";
-import { addFileToTree, addFolderToTree } from "../utils/treeUtils";
+import { loadFromLocal, saveToLocal } from "../storage/LocalStorage";
+import {
+  addFileToTree,
+  addFolderToTree,
+  renameItemInTree,
+  updateFileContentInTree,
+} from "../utils/utils";
 
 export default function WorkspacePage() {
   const isMobile = useIsMobile();
@@ -25,6 +30,8 @@ export default function WorkspacePage() {
   const [rootHandle, setRootHandle] =
     useState<FileSystemDirectoryHandle | null>(null);
   const [focusId, setFocusId] = useState<string | null>(null);
+  const [renamingId, setRenamingId] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
 
   const { width: tocWidth, onMouseDown: onTOCResize } = useResize(
     208,
@@ -108,27 +115,54 @@ export default function WorkspacePage() {
     if (!folderTree) return;
     const parentId = getTargetParentId();
     if (!parentId) return;
-    setFolderTree(addFileToTree(folderTree, parentId, name));
+    const { tree, newId } = addFileToTree(folderTree, parentId, name);
+    setFolderTree(tree);
+    setRenamingId(newId);
   };
 
   const handleAddFolder = (name: string) => {
     if (!folderTree) return;
     const parentId = getTargetParentId();
     if (!parentId) return;
-    setFolderTree(addFolderToTree(folderTree, parentId, name));
+    const { tree, newId } = addFolderToTree(folderTree, parentId, name);
+    setFolderTree(tree);
+    setRenamingId(newId);
   };
 
-  const handleSave = (html: string) => {
-    // Phase 3 will save this to Drive/OneDrive/local
-    console.log("Auto-saving...", html.slice(0, 80));
-    setContent(html);
+  const handleRename = (id: string, newName: string) => {
+    if (!folderTree) return;
+    setFolderTree(renameItemInTree(folderTree, id, newName));
+    setRenamingId(null);
   };
 
-  useEffect(() => {
-    if (selectedFile) {
-      setContent(selectedFile.content);
+  const handleSave = async () => {
+    if (!folderTree) return;
+
+    let handle = rootHandle;
+
+    // If no handle yet (Create New), ask user where to save
+    if (!handle) {
+      try {
+        handle = await (window as any).showDirectoryPicker({
+          mode: "readwrite",
+        });
+        setRootHandle(handle);
+      } catch {
+        return; // user cancelled
+      }
     }
-  }, [selectedFile]);
+
+    setSaving(true);
+    try {
+      const updatedTree = selectedFile
+        ? updateFileContentInTree(folderTree, selectedFile.id, content)
+        : folderTree;
+      await saveToLocal(handle!, updatedTree);
+      setFolderTree(updatedTree);
+    } finally {
+      setSaving(false);
+    }
+  };
 
   useEffect(() => {
     if (editor && content !== editor.getHTML()) {
@@ -142,7 +176,7 @@ export default function WorkspacePage() {
 
   return (
     <div className="flex flex-col h-screen bg-white dark:bg-gray-900 dark:text-gray-300 overflow-hidden">
-      <Navbar />
+      <Navbar onSave={handleSave} saving={saving} canSave={hasFolder} />
 
       <div className="flex flex-1 overflow-hidden">
         {/* Left Sidebar */}
@@ -163,6 +197,9 @@ export default function WorkspacePage() {
             onAddFolder={handleAddFolder}
             focusId={focusId}
             onFocus={setFocusId}
+            renamingId={renamingId}
+            onRenameStart={setRenamingId}
+            onRenameConfirm={handleRename}
           />
         </aside>
 

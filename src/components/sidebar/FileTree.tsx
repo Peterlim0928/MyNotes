@@ -30,6 +30,9 @@ interface Props {
   onAddFolder: (name: string) => void;
   focusId: string | null;
   onFocus: (id: string | null) => void;
+  renamingId: string | null;
+  onRenameStart: (id: string) => void;
+  onRenameConfirm: (id: string, newName: string) => void;
 }
 
 export default function FileTree({
@@ -45,6 +48,9 @@ export default function FileTree({
   onAddFolder,
   focusId,
   onFocus,
+  renamingId,
+  onRenameStart,
+  onRenameConfirm,
 }: Props) {
   const [step, setStep] = useState<Step>("root");
 
@@ -172,10 +178,7 @@ export default function FileTree({
                 <button
                   className="hover:bg-gray-100 dark:hover:bg-gray-700 p-1 rounded-md transition-colors"
                   title="New file"
-                  onClick={() => {
-                    const name = prompt("File name:");
-                    if (name?.trim()) onAddFile(name.trim());
-                  }}
+                  onClick={() => onAddFile("New Note")}
                 >
                   <FilePlus
                     size={14}
@@ -185,10 +188,7 @@ export default function FileTree({
                 <button
                   className="hover:bg-gray-100 dark:hover:bg-gray-700 p-1 rounded-md transition-colors"
                   title="New folder"
-                  onClick={() => {
-                    const name = prompt("Folder name:");
-                    if (name?.trim()) onAddFolder(name.trim());
-                  }}
+                  onClick={() => onAddFolder("New Folder")}
                 >
                   <FolderPlus
                     size={14}
@@ -209,6 +209,9 @@ export default function FileTree({
                 collapsed={collapsed}
                 focusedId={focusId}
                 onFocus={onFocus}
+                renamingId={renamingId}
+                onRenameStart={onRenameStart}
+                onRenameConfirm={onRenameConfirm}
               />
             ))}
           </div>
