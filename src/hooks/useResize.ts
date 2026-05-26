@@ -1,7 +1,19 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
-export function useResize(defaultWidth: number, min: number, max: number) {
-  const [width, setWidth] = useState(defaultWidth);
+export function useResize(
+  defaultWidth: number,
+  min: number,
+  max: number,
+  storageKey?: string,
+) {
+  const [width, setWidth] = useState(() => {
+    if (storageKey) {
+      const stored = localStorage.getItem(storageKey);
+      if (stored) return Math.min(max, Math.max(min, parseInt(stored)));
+    }
+    return defaultWidth;
+  });
+
   const dragging = useRef(false);
   const startX = useRef(0);
   const startWidth = useRef(0);
@@ -20,10 +32,10 @@ export function useResize(defaultWidth: number, min: number, max: number) {
   useEffect(() => {
     const onMouseMove = (e: MouseEvent) => {
       if (!dragging.current) return;
-      // Dragging left increases width, right decreases (since it's a right sidebar)
       const delta = startX.current - e.clientX;
       const newWidth = Math.min(max, Math.max(min, startWidth.current + delta));
       setWidth(newWidth);
+      if (storageKey) localStorage.setItem(storageKey, String(newWidth));
     };
 
     const onMouseUp = () => {
@@ -38,7 +50,7 @@ export function useResize(defaultWidth: number, min: number, max: number) {
       document.removeEventListener("mousemove", onMouseMove);
       document.removeEventListener("mouseup", onMouseUp);
     };
-  }, []);
+  }, [storageKey]);
 
   return { width, onMouseDown };
 }

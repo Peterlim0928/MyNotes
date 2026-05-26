@@ -22,7 +22,7 @@ export default function FileTreeItem({
 
   if (isFolder(item)) {
     return (
-      <div>
+      <>
         <button
           onClick={() => !collapsed && setOpen(!open)}
           title={collapsed ? item.name : undefined}
@@ -66,7 +66,7 @@ export default function FileTreeItem({
               collapsed={collapsed}
             />
           ))}
-      </div>
+      </>
     );
   }
 

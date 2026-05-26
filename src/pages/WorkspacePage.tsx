@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import FileTree from "../components/sidebar/FileTree";
 import TableOfContents from "../components/sidebar/TableOfContents";
 import type { NoteFile } from "../types";
@@ -6,29 +6,15 @@ import Navbar from "../components/ui/Navbar";
 import Editor from "../components/editor/Editor";
 import { useActiveTOC, type TOCItem } from "../hooks/useTOC";
 import type { Editor as EditorType } from "@tiptap/react";
-import { MOCK_CONTENT } from "../utils/mock";
 import { useResize } from "../hooks/useResize";
 import { useIsMobile } from "../hooks/useIsMobile";
 import { BookOpen, X } from "lucide-react";
-
-// const MOCK_CONTENT = `
-//   <h1>Cell Structure</h1>
-//   <p>This note covers the basics of cell biology.</p>
-//   <h2>What is a Cell?</h2>
-//   <p>The cell is the basic structural and functional unit of life.</p>
-//   <h3>Cell Membrane</h3>
-//   <p>The cell membrane controls what enters and exits the cell.</p>
-//   <h3>Nucleus</h3>
-//   <p>The nucleus contains the cell's genetic material.</p>
-//   <h2>Summary</h2>
-//   <p>Cells are incredibly complex structures with many components.</p>
-// `;
 
 export default function WorkspacePage() {
   const isMobile = useIsMobile();
   const [selectedFile, setSelectedFile] = useState<NoteFile | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
-  const [content, setContent] = useState(MOCK_CONTENT);
+  const [content, setContent] = useState("");
   const [editor, setEditor] = useState<EditorType | null>(null);
   const [tocItems, setTocItems] = useState<TOCItem[]>([]);
   const [tocOpen, setTocOpen] = useState(false);
@@ -37,6 +23,7 @@ export default function WorkspacePage() {
     208,
     160,
     400,
+    "toc-width",
   );
 
   const activeId = useActiveTOC(editor, tocItems);
@@ -64,6 +51,18 @@ export default function WorkspacePage() {
     console.log("Auto-saving...", html.slice(0, 80));
     setContent(html);
   };
+
+  useEffect(() => {
+    if (selectedFile) {
+      setContent(selectedFile.content);
+    }
+  }, [selectedFile]);
+
+  useEffect(() => {
+    if (editor && content !== editor.getHTML()) {
+      editor.commands.setContent(content);
+    }
+  }, [content, editor]);
 
   return (
     <div className="flex flex-col h-screen bg-white dark:bg-gray-900 dark:text-gray-300 overflow-hidden">
@@ -102,7 +101,7 @@ export default function WorkspacePage() {
         {/* Right Sidebar — TOC (Desktop) */}
         {!isMobile && (
           <aside
-            className="border-l border-gray-200 flex-shrink-0 relative flex"
+            className="border-l border-gray-200 dark:border-gray-600 flex-shrink-0 relative flex"
             style={{ width: `${tocWidth}px` }}
           >
             {/* Drag handle */}

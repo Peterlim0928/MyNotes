@@ -2,7 +2,7 @@ export interface NoteFile {
   id: string;
   name: string;
   parentId: string | null;
-  content?: string;
+  content: string;
   createdAt?: string;
   updatedAt?: string;
 }

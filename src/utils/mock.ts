@@ -1,4 +1,20 @@
-export const MOCK_CONTENT = `<h2>Lecture 1: Languages</h2>
+import type { NoteFolder } from "../types";
+
+export const MOCK_TREE: NoteFolder = {
+  id: "root",
+  name: "My Notes",
+  parentId: null,
+  children: [
+    {
+      id: "folder-1",
+      name: "FIT2014",
+      parentId: "root",
+      children: [
+        {
+          id: "file-1",
+          name: "Notes",
+          parentId: "folder-1",
+          content: `<h2>Lecture 1: Languages</h2>
 
 <h3>1.1 Alphabets</h3>
 <p>An alphabet is a finite set of symbols.</p>
@@ -288,4 +304,23 @@ export const MOCK_CONTENT = `<h2>Lecture 1: Languages</h2>
 <p>
   ¬∀Y means the same as ∃Y ¬<br>
   ¬∃Y means the same as ∀Y ¬
-</p>`;
+</p>`,
+        },
+      ],
+    },
+    {
+      id: "folder-2",
+      name: "Math",
+      parentId: "root",
+      children: [
+        {
+          id: "file-3",
+          name: "Calculus Basics.html",
+          parentId: "folder-2",
+          content: "",
+        },
+      ],
+    },
+    { id: "file-4", name: "Quick Notes.html", parentId: "root", content: "" },
+  ],
+};

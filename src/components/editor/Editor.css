@@ -114,6 +114,21 @@
   margin-left: auto;
 }
 
+.editor-content img[data-align="left"] {
+  margin-right: auto;
+  margin-left: 0;
+}
+
+.editor-content img[data-align="center"] {
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.editor-content img[data-align="right"] {
+  margin-left: auto;
+  margin-right: 0;
+}
+
 .editor-content .ProseMirror > *:first-child {
   margin-top: 0;
 }
@@ -121,6 +136,12 @@
 .editor-content .ProseMirror {
   outline: none;
   height: 100%;
+}
+
+.editor-content .ProseMirror::after {
+  content: "";
+  display: block;
+  height: 2rem;
 }
 
 .editor-content .ProseMirror-focused {

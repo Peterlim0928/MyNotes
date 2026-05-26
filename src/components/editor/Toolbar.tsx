@@ -184,7 +184,7 @@ export default function Toolbar({
       <Dropdown
         trigger={
           <button
-            className="flex items-center gap-0.5 p-1.5 rounded text-gray-600 hover:bg-gray-100 transition-colors"
+            className="flex items-center gap-0.5 p-1.5 rounded text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors"
             title="Font color"
           >
             <div className="flex flex-col items-center leading-none">
@@ -257,24 +257,66 @@ export default function Toolbar({
       <Divider />
 
       <ToolBtn
-        onClick={() => editor.chain().focus().setTextAlign("left").run()}
-        active={editor.isActive({ textAlign: "left" })}
+        onClick={() => {
+          if (isImageSelected) {
+            editor
+              .chain()
+              .focus()
+              .updateAttributes("image", { align: "left" })
+              .run();
+          } else {
+            editor.chain().focus().setTextAlign("left").run();
+          }
+        }}
+        active={
+          isImageSelected
+            ? editor.getAttributes("image").align === "left"
+            : editor.isActive({ textAlign: "left" })
+        }
         title="Align left"
       >
         <AlignLeft size={15} />
       </ToolBtn>
 
       <ToolBtn
-        onClick={() => editor.chain().focus().setTextAlign("center").run()}
-        active={editor.isActive({ textAlign: "center" })}
+        onClick={() => {
+          if (isImageSelected) {
+            editor
+              .chain()
+              .focus()
+              .updateAttributes("image", { align: "center" })
+              .run();
+          } else {
+            editor.chain().focus().setTextAlign("center").run();
+          }
+        }}
+        active={
+          isImageSelected
+            ? editor.getAttributes("image").align === "center"
+            : editor.isActive({ textAlign: "center" })
+        }
         title="Align center"
       >
         <AlignCenter size={15} />
       </ToolBtn>
 
       <ToolBtn
-        onClick={() => editor.chain().focus().setTextAlign("right").run()}
-        active={editor.isActive({ textAlign: "right" })}
+        onClick={() => {
+          if (isImageSelected) {
+            editor
+              .chain()
+              .focus()
+              .updateAttributes("image", { align: "right" })
+              .run();
+          } else {
+            editor.chain().focus().setTextAlign("right").run();
+          }
+        }}
+        active={
+          isImageSelected
+            ? editor.getAttributes("image").align === "right"
+            : editor.isActive({ textAlign: "right" })
+        }
         title="Align right"
       >
         <AlignRight size={15} />
@@ -297,7 +339,7 @@ export default function Toolbar({
 
       <div
         className={`flex items-center gap-1 overflow-hidden transition-all duration-200 ease-in-out ${
-          imageExpanded ? "max-w-32 opacity-100" : "max-w-0 opacity-0"
+          imageExpanded ? "opacity-100" : "opacity-0"
         }`}
       >
         {urlInput ? (
@@ -368,10 +410,10 @@ export default function Toolbar({
           );
 
           return (
-            <div className="relative flex items-center bg-green-100 rounded-md mx-1">
+            <div className="relative flex items-center bg-blue-100 rounded-md mx-1">
               {/* Sliding indicator */}
               <div
-                className="absolute top-0 bottom-0 rounded transition-all duration-200 ease-in-out bg-green-600"
+                className="absolute top-0 bottom-0 rounded transition-all duration-200 ease-in-out bg-blue-600"
                 style={{
                   width: `calc(100% / ${SIZES.length})`,
                   left: `calc(${currentIndex} * 100% / ${SIZES.length})`,
@@ -391,7 +433,7 @@ export default function Toolbar({
                   className={`relative z-10 px-2 py-1 w-15 text-xs rounded transition-colors duration-200 ${
                     currentSize === s.toLowerCase()
                       ? "text-white font-medium"
-                      : "text-green-700 hover:text-green-900"
+                      : "text-blue-700 hover:text-blue-900"
                   }`}
                 >
                   {s}

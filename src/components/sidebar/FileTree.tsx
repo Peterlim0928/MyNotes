@@ -1,32 +1,7 @@
-import type { NoteFile, NoteFolder } from "../../types";
+import type { NoteFile } from "../../types";
+import { MOCK_TREE } from "../../utils/mock";
 import FileTreeItem from "./FileTreeItem";
 import { FolderOpen, ChevronLeft, ChevronRight } from "lucide-react";
-
-const MOCK_TREE: NoteFolder = {
-  id: "root",
-  name: "My Notes",
-  parentId: null,
-  children: [
-    {
-      id: "folder-1",
-      name: "Biology",
-      parentId: "root",
-      children: [
-        { id: "file-1", name: "Cell Structure.html", parentId: "folder-1" },
-        { id: "file-2", name: "Photosynthesis.html", parentId: "folder-1" },
-      ],
-    },
-    {
-      id: "folder-2",
-      name: "Math",
-      parentId: "root",
-      children: [
-        { id: "file-3", name: "Calculus Basics.html", parentId: "folder-2" },
-      ],
-    },
-    { id: "file-4", name: "Quick Notes.html", parentId: "root" },
-  ],
-};
 
 interface Props {
   selectedId: string | null;
@@ -64,7 +39,7 @@ export default function FileTree({
       </div>
 
       {/* File list */}
-      <div className="flex-1 overflow-y-auto py-2">
+      <div className="flex-1 overflow-y-auto p-2">
         {MOCK_TREE.children.map((item) => (
           <FileTreeItem
             key={item.id}
