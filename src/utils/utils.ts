@@ -1,13 +1,13 @@
 import { v4 as uuidv4 } from "uuid";
-import type { NoteFile, NoteFolder } from "../types";
+import type { NoteFile, NoteFolder, NoteImage } from "../types";
 
 export function isFolder(item: NoteFile | NoteFolder): item is NoteFolder {
   return "children" in item;
 }
 
-export function isChild(folder: NoteFolder, id: string): boolean {
+export function hasChild(folder: NoteFolder, id: string): boolean {
   return folder.children.some(
-    (child) => child.id === id || ("children" in child && isChild(child, id)),
+    (child) => child.id === id || (isFolder(child) && hasChild(child, id)),
   );
 }
 
@@ -22,8 +22,9 @@ export function addFileToTree(
     name: name.endsWith(".html") ? name : `${name}.html`,
     parentId,
     content: "<p></p>",
+    images: [],
   };
-  return { tree: insertIntoTree(tree, parentId, newFile), newId: id };
+  return { tree: insertItemIntoTree(tree, parentId, newFile), newId: id };
 }
 
 export function addFolderToTree(
@@ -38,10 +39,28 @@ export function addFolderToTree(
     parentId,
     children: [],
   };
-  return { tree: insertIntoTree(tree, parentId, newFolder), newId: id };
+  return { tree: insertItemIntoTree(tree, parentId, newFolder), newId: id };
 }
 
-function insertIntoTree(
+export function addImageToFile(
+  tree: NoteFolder,
+  fileId: string,
+  image: NoteImage,
+): NoteFolder {
+  return {
+    ...tree,
+    children: tree.children.map((child) => {
+      if (child.id === fileId) {
+        const file = child as NoteFile;
+        return { ...file, images: [...(file.images ?? []), image] };
+      }
+      if ("children" in child) return addImageToFile(child, fileId, image);
+      return child;
+    }),
+  };
+}
+
+function insertItemIntoTree(
   node: NoteFolder,
   parentId: string,
   item: NoteFile | NoteFolder,
@@ -53,7 +72,7 @@ function insertIntoTree(
   return {
     ...node,
     children: node.children.map((child) =>
-      "children" in child ? insertIntoTree(child, parentId, item) : child,
+      isFolder(child) ? insertItemIntoTree(child, parentId, item) : child,
     ),
   };
 }
@@ -71,12 +90,23 @@ export function renameItemInTree(
     ...tree,
     children: tree.children.map((child) => {
       if (child.id === id) {
-        const name = "children" in child ? newName : `${newName}.html`;
+        const name = isFolder(child) ? newName : `${newName}.html`;
         return { ...child, name };
       }
-      if ("children" in child) return renameItemInTree(child, id, newName);
+      if (isFolder(child)) return renameItemInTree(child, id, newName);
       return child;
     }),
+  };
+}
+
+export function deleteItemFromTree(tree: NoteFolder, id: string): NoteFolder {
+  return {
+    ...tree,
+    children: tree.children
+      .filter((child) => child.id !== id)
+      .map((child) =>
+        isFolder(child) ? deleteItemFromTree(child, id) : child,
+      ),
   };
 }
 
@@ -89,9 +119,25 @@ export function updateFileContentInTree(
     ...tree,
     children: tree.children.map((child) => {
       if (child.id === fileId) return { ...child, content };
-      if ("children" in child)
+      if (isFolder(child))
         return updateFileContentInTree(child, fileId, content);
       return child;
+    }),
+  };
+}
+
+export function swapBlobUrlsForPaths(tree: NoteFolder): NoteFolder {
+  return {
+    ...tree,
+    children: tree.children.map((child) => {
+      if ("children" in child) return swapBlobUrlsForPaths(child);
+      const file = child as NoteFile;
+      const content = file.content.replace(
+        /<img([^>]*?)src="blob:[^"]*"([^>]*?)data-src="(\.\/images\/[^"]*)"([^>]*?)>/g,
+        (_, before, middle, dataSrc, after) =>
+          `<img${before}src="${dataSrc}"${middle}data-src="${dataSrc}"${after}>`,
+      );
+      return { ...file, content };
     }),
   };
 }

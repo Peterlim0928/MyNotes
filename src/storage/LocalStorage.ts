@@ -1,4 +1,5 @@
-import type { NoteFile, NoteFolder } from "../types";
+import type { NoteFile, NoteFolder, NoteImage } from "../types";
+import { isFolder } from "../utils/utils";
 
 async function readFolderRecursive(
   handle: FileSystemDirectoryHandle,
@@ -20,11 +21,31 @@ async function readFolderRecursive(
       const raw = await file.text();
       const bodyMatch = raw.match(/<body[^>]*>([\s\S]*)<\/body>/);
       const content = bodyMatch ? bodyMatch[1].trim() : raw;
+
+      // Read images folder if it exists
+      const images: NoteImage[] = [];
+      try {
+        const imgDir = await (handle as any).getDirectoryHandle("images");
+        for await (const [imgName, imgEntry] of (imgDir as any).entries()) {
+          if (imgEntry.kind === "file") {
+            const imgFile = await imgEntry.getFile();
+            const blob = new Blob([await imgFile.arrayBuffer()], {
+              type: imgFile.type,
+            });
+            const blobUrl = URL.createObjectURL(blob);
+            images.push({ id: crypto.randomUUID(), filename: imgName, blob });
+          }
+        }
+      } catch {
+        // no images folder, that's fine
+      }
+
       folder.children.push({
         id: `${handle.name}/${name}`,
         name,
         parentId: handle.name,
         content,
+        images,
       } as NoteFile);
     }
   }
@@ -120,7 +141,7 @@ async function writeFolderRecursive(
 
   // Write everything in the tree
   for (const child of folder.children) {
-    if ("children" in child) {
+    if (isFolder(child)) {
       const subDir = await (dirHandle as any).getDirectoryHandle(child.name, {
         create: true,
       });
@@ -133,6 +154,20 @@ async function writeFolderRecursive(
       await writable.write(
         wrapWithDocument(child.content, child.name.replace(".html", "")),
       );
+      // After writing the HTML file, write its images
+      if (child.images?.length) {
+        const imgDir = await (dirHandle as any).getDirectoryHandle("images", {
+          create: true,
+        });
+        for (const img of child.images) {
+          const imgHandle = await (imgDir as any).getFileHandle(img.filename, {
+            create: true,
+          });
+          const writable = await imgHandle.createWritable();
+          await writable.write(img.blob);
+          await writable.close();
+        }
+      }
       await writable.close();
     }
   }

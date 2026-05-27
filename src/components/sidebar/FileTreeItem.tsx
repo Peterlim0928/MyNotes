@@ -1,7 +1,7 @@
 import { ChevronRight, ChevronDown, FileText, Folder } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import type { NoteFile, NoteFolder } from "../../types";
-import { isChild, isFolder } from "../../utils/utils";
+import { hasChild, isFolder } from "../../utils/utils";
 import ContextMenu from "../ui/ContextMenu";
 
 interface Props {
@@ -15,6 +15,7 @@ interface Props {
   renamingId: string | null;
   onRenameStart: (id: string) => void;
   onRenameConfirm: (id: string, newName: string) => void;
+  onDelete: (id: string) => void;
 }
 
 export default function FileTreeItem({
@@ -28,6 +29,7 @@ export default function FileTreeItem({
   renamingId,
   onRenameStart,
   onRenameConfirm,
+  onDelete,
 }: Props) {
   const [expanded, setExpanded] = useState(true);
   const [hovered, setHovered] = useState(false);
@@ -42,8 +44,9 @@ export default function FileTreeItem({
     { label: "Rename", onClick: () => onRenameStart(item.id) },
     {
       label: "Delete",
-      onClick: () => alert("delete"),
-      className: "text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20",
+      onClick: () => onDelete(item.id),
+      className:
+        "text-red-500 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20",
     },
   ];
 
@@ -71,7 +74,7 @@ export default function FileTreeItem({
       setTimeout(() => inputRef.current?.focus(), 100);
     }
     // If a child is being renamed, expand this folder
-    if (isFolder(item) && renamingId && isChild(item, renamingId)) {
+    if (isFolder(item) && renamingId && hasChild(item, renamingId)) {
       setExpanded(true);
     }
   }, [renamingId]);
@@ -152,6 +155,7 @@ export default function FileTreeItem({
               renamingId={renamingId}
               onRenameStart={onRenameStart}
               onRenameConfirm={onRenameConfirm}
+              onDelete={onDelete}
             />
           ))}
       </div>

@@ -1,8 +1,15 @@
+export interface NoteImage {
+  id: string;
+  filename: string;
+  blob: Blob;
+}
+
 export interface NoteFile {
   id: string;
   name: string;
   parentId: string | null;
   content: string;
+  images: NoteImage[];
 }
 
 export interface NoteFolder {

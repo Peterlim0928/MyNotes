@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import FileTree from "../components/sidebar/FileTree";
 import TableOfContents from "../components/sidebar/TableOfContents";
-import type { NoteFile, NoteFolder } from "../types";
+import type { NoteFile, NoteFolder, NoteImage } from "../types";
 import Navbar from "../components/ui/Navbar";
 import Editor from "../components/editor/Editor";
 import { useActiveTOC, type TOCItem } from "../hooks/useTOC";
@@ -13,7 +13,10 @@ import { loadFromLocal, saveToLocal } from "../storage/LocalStorage";
 import {
   addFileToTree,
   addFolderToTree,
+  addImageToFile,
+  deleteItemFromTree,
   renameItemInTree,
+  swapBlobUrlsForPaths,
   updateFileContentInTree,
 } from "../utils/utils";
 
@@ -32,6 +35,7 @@ export default function WorkspacePage() {
   const [focusId, setFocusId] = useState<string | null>(null);
   const [renamingId, setRenamingId] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const [imageBlobMap, setImageBlobMap] = useState<Record<string, string>>({});
 
   const { width: tocWidth, onMouseDown: onTOCResize } = useResize(
     208,
@@ -83,6 +87,15 @@ export default function WorkspacePage() {
   };
 
   const handleSelectFile = (file: NoteFile) => {
+    // Build a map of relative path -> blob URL
+    const blobMap: Record<string, string> = {};
+    if (file.images?.length) {
+      for (const img of file.images) {
+        const blobUrl = URL.createObjectURL(img.blob);
+        blobMap[`./images/${img.filename}`] = blobUrl;
+      }
+    }
+    setImageBlobMap(blobMap);
     setContent(file.content);
     setSelectedFile(file);
   };
@@ -135,12 +148,15 @@ export default function WorkspacePage() {
     setRenamingId(null);
   };
 
+  const handleDelete = (id: string) => {
+    if (!folderTree) return;
+    setFolderTree(deleteItemFromTree(folderTree, id));
+  };
+
   const handleSave = async () => {
     if (!folderTree) return;
 
     let handle = rootHandle;
-
-    // If no handle yet (Create New), ask user where to save
     if (!handle) {
       try {
         handle = await (window as any).showDirectoryPicker({
@@ -148,20 +164,39 @@ export default function WorkspacePage() {
         });
         setRootHandle(handle);
       } catch {
-        return; // user cancelled
+        return;
       }
     }
 
     setSaving(true);
     try {
-      const updatedTree = selectedFile
+      let updatedTree = selectedFile
         ? updateFileContentInTree(folderTree, selectedFile.id, content)
         : folderTree;
+
+      // Log before swap
+      const currentFile = updatedTree.children.find(
+        (c) => c.id === selectedFile?.id,
+      ) as any;
+      console.log("content before swap:", currentFile?.content?.slice(0, 500));
+
+      updatedTree = swapBlobUrlsForPaths(updatedTree);
+
+      const afterFile = updatedTree.children.find(
+        (c) => c.id === selectedFile?.id,
+      ) as any;
+      console.log("content after swap:", afterFile?.content?.slice(0, 500));
+
       await saveToLocal(handle!, updatedTree);
       setFolderTree(updatedTree);
     } finally {
       setSaving(false);
     }
+  };
+
+  const handleImageAdd = (image: NoteImage) => {
+    if (!selectedFile || !folderTree) return;
+    setFolderTree(addImageToFile(folderTree, selectedFile.id, image));
   };
 
   useEffect(() => {
@@ -200,6 +235,7 @@ export default function WorkspacePage() {
             renamingId={renamingId}
             onRenameStart={setRenamingId}
             onRenameConfirm={handleRename}
+            onDelete={handleDelete}
           />
         </aside>
 
@@ -211,6 +247,8 @@ export default function WorkspacePage() {
               onChange={setContent}
               onTOCChange={setTocItems}
               onEditorReady={setEditor}
+              onImageAdd={handleImageAdd}
+              imageBlobMap={imageBlobMap}
             />
           ) : (
             <div className="h-full flex items-center justify-center text-gray-300 text-sm">

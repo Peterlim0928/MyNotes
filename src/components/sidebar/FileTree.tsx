@@ -15,8 +15,6 @@ import {
   FolderInput,
 } from "lucide-react";
 
-type Step = "root" | "load";
-
 interface Props {
   selectedId: string | null;
   onSelect: (file: NoteFile) => void;
@@ -33,6 +31,7 @@ interface Props {
   renamingId: string | null;
   onRenameStart: (id: string) => void;
   onRenameConfirm: (id: string, newName: string) => void;
+  onDelete: (id: string) => void;
 }
 
 export default function FileTree({
@@ -51,8 +50,9 @@ export default function FileTree({
   renamingId,
   onRenameStart,
   onRenameConfirm,
+  onDelete,
 }: Props) {
-  const [step, setStep] = useState<Step>("root");
+  const [step, setStep] = useState<"root" | "load">("root");
 
   return (
     <div className="h-full flex flex-col">
@@ -212,6 +212,7 @@ export default function FileTree({
                 renamingId={renamingId}
                 onRenameStart={onRenameStart}
                 onRenameConfirm={onRenameConfirm}
+                onDelete={onDelete}
               />
             ))}
           </div>
